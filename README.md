@@ -1,4 +1,4 @@
-# hw-zona[index.html](https://github.com/user-attachments/files/31874546/index.html)
+[index.html](https://github.com/user-attachments/files/31874783/index.html)
 <!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -20,7 +20,7 @@ h1{font-size:22px;margin:0}.month{font-size:14px;color:var(--muted);background:#
 .item-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px}.mini{padding:7px 10px;border-radius:10px;background:#f5efec;color:#635751;font-size:13px}.mini.done{background:#edf8f1;color:var(--green)}.mini.delete{background:#fff0f0;color:var(--red)}
 button{border:0;font:inherit;cursor:pointer}.bottom-actions{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(484px,calc(100% - 36px));display:grid;grid-template-columns:1fr 1.4fr;gap:9px}.fab{padding:15px 10px;border-radius:18px;font-weight:750;font-size:16px;box-shadow:0 10px 25px #6b493320}.fab.secondary{background:#fff;color:var(--accent);border:1px solid var(--line)}.fab.primary{background:var(--accent);color:white}
 dialog{border:0;border-radius:22px;width:min(480px,calc(100% - 30px));padding:0;box-shadow:0 20px 60px #0003}dialog::backdrop{background:#2b211d66}.form{padding:22px}.form h2{margin:0 0 18px}.field{margin:12px 0}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:13px;background:#fff;font:inherit}.row{display:flex;gap:9px}.row>*{flex:1}.actions{display:flex;gap:9px;margin-top:18px}.actions button{flex:1;padding:13px;border-radius:13px}.cancel{background:#f4eeeb}.save{background:var(--accent);color:#fff}.note{font-size:12px;color:var(--muted);line-height:1.6}.topup-note{background:#f7fbf8;border:1px solid #e0eee5;border-radius:14px;padding:11px 12px;font-size:13px;color:#5f7567;margin-top:10px}
-.reimburse-card{background:#fffaf4;border:1px solid #f3dfc4;border-radius:16px;padding:13px 14px;margin-bottom:14px}.reimburse-card b{display:block;font-size:18px;margin-top:3px}
+.reimburse-card{background:#fffaf4;border:1px solid #f3dfc4;border-radius:16px;padding:13px 14px;margin-bottom:10px}.reimburse-card b{display:block;font-size:18px;margin-top:3px}.pending-list{background:#fff;border:1px solid var(--line);border-radius:16px;padding:0 14px;margin-bottom:14px}.pending-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.pending-row:last-child{border-bottom:0}.pending-row-main{min-width:0}.pending-row-main b{display:block;font-size:14px}.pending-row-main small{color:var(--muted);font-size:12px}.pending-row .mini{flex:0 0 auto}.pending-empty{padding:14px 0;color:var(--muted);font-size:13px;text-align:center}
 </style>
 </head>
 <body>
@@ -36,6 +36,7 @@ dialog{border:0;border-radius:22px;width:min(480px,calc(100% - 30px));padding:0;
 
 <div class="section-title">🧾 待請款</div>
 <div class="reimburse-card"><span class="label">目前尚未完成請款</span><b id="pendingTotal">$0</b><span class="label" id="pendingDetail">阿偉 $0 ・ 曉吟 $0</span></div>
+<div class="pending-list" id="pendingList"></div>
 
 <div class="section-title">👫 本月實際付款</div>
 <section class="card people"><div class="person">👨 阿偉<b id="hao">$0</b></div><div class="person">👩 曉吟<b id="yin">$0</b></div><div class="person">💰 公基金<b id="fund">$0</b></div></section>
@@ -112,6 +113,7 @@ function render(){
  const pendingBy=p=>pending.filter(x=>x.payer===p).reduce((s,x)=>s+Number(x.amount),0);
  document.querySelector("#pendingTotal").textContent=money(pendingTotal);
  document.querySelector("#pendingDetail").textContent=`阿偉 ${money(pendingBy("阿偉"))} ・ 曉吟 ${money(pendingBy("曉吟"))}`;
+ document.querySelector("#pendingList").innerHTML=pending.length?pending.map(x=>`<div class="pending-row"><div class="pending-row-main"><b>${escapeHtml(expenseName(x))} ・ ${money(x.amount)}</b><small>付款：${escapeHtml(x.payer)} → 負擔：${escapeHtml(x.burden)}</small></div><button type="button" class="mini done" onclick="toggleReimbursement('${x.id}')">✓ 完成請款</button></div>`).join(""):`<div class="pending-empty">目前沒有待請款項目 ✓</div>`;
 
  current.sort((a,b)=>b.expense_date.localeCompare(a.expense_date)||String(b.created_at).localeCompare(String(a.created_at)));
  document.querySelector("#list").innerHTML=current.length?current.map(x=>{
@@ -121,9 +123,9 @@ function render(){
    }
    const statusClass=x.reimbursement_status==="待請款"?"pending":x.reimbursement_status==="已請款"?"done":"";
    const action=x.reimbursement_status==="待請款"
-     ? `<button class="mini done" onclick="toggleReimbursement('${x.id}')">✓ 完成請款</button>`
+     ? `<button type="button" class="mini done" onclick="toggleReimbursement('${x.id}')">✓ 完成請款</button>`
      : x.reimbursement_status==="已請款"
-       ? `<button class="mini" onclick="toggleReimbursement('${x.id}')">↩ 改回待請款</button>`
+       ? `<button type="button" class="mini" onclick="toggleReimbursement('${x.id}')">↩ 改回待請款</button>`
        : "";
    return `<div class="item">
      <div class="item-head"><div><b>${escapeHtml(expenseName(x))}</b><div class="meta"><small>${escapeHtml(x.category)} ・ ${escapeHtml(x.expense_date)}</small><br><small>${escapeHtml(x.memo||"")}</small></div></div><div class="amount expense">-${money(x.amount)}</div></div>
